@@ -40,7 +40,8 @@ class RegionModel:
             region_params=dict(),
             actual_deaths_smooth=None,
             randomize_params=False,
-            compute_hospitalizations=False):
+            compute_hospitalizations=False,
+            include_vaccination=False):
         """
         Parameters
         ----------
@@ -79,6 +80,7 @@ class RegionModel:
         self.actual_deaths_smooth = actual_deaths_smooth
         self.randomize_params = randomize_params
         self.compute_hospitalizations = compute_hospitalizations
+        self.include_vaccination = include_vaccination
 
         self.country_holidays = None
         self.N = (self.projection_end_date - self.first_date).days + 1

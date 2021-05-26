@@ -6,7 +6,7 @@
     "fixed_params": [
         [
             "PROJECTION_END_DATE",
-            "2020-11-01"
+            "2021-05-25"
         ],
         [
             "INCUBATION_DAYS",
@@ -205,11 +205,11 @@
     "mean_params": [
         [
             "INITIAL_R_0",
-            2.2637755302375644
+            1.02
         ],
         [
             "LOCKDOWN_R_0",
-            0.9038440070216232
+            0.95
         ],
         [
             "INFLECTION_DAY",
@@ -217,11 +217,11 @@
         ],
         [
             "RATE_OF_INFLECTION",
-            0.35245146707754205
+            0.25
         ],
         [
             "LOCKDOWN_FATIGUE",
-            1.0
+            0.95
         ],
         [
             "DAILY_IMPORTS",
@@ -229,7 +229,7 @@
         ],
         [
             "MORTALITY_RATE",
-            0.01
+            0.03
         ],
         [
             "REOPEN_DATE",
@@ -241,15 +241,15 @@
         ],
         [
             "REOPEN_R",
-            1.2681889965435804
+            1.06
         ],
         [
             "REOPEN_INFLECTION",
-            0.32847835689143956
+            0.3
         ],
         [
             "POST_REOPEN_EQUILIBRIUM_R",
-            1.0073471671122585
+            1.038
         ],
         [
             "FALL_R_MULTIPLIER",

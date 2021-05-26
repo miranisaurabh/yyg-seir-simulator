@@ -52,6 +52,7 @@ def run(region_model):
     dates = np.array([region_model.first_date + datetime.timedelta(days=i) \
         for i in range(region_model.N)])
     infections = np.array([0.] * region_model.N)
+    vaccinations = np.array([0.] * region_model.N)
     hospitalizations = np.zeros(region_model.N) * np.nan
     deaths = np.array([0.] * region_model.N)
     reported_deaths = np.array([0.] * region_model.N)
@@ -96,12 +97,33 @@ def run(region_model):
             min(1., infected_thus_far / region_model.population)
         assert 0 <= perc_population_infected_thus_far <= 1, perc_population_infected_thus_far
 
-        r_immunity_perc = (1. - perc_population_infected_thus_far)**region_model.immunity_mult
+        if region_model.include_vaccination:
+            vaccinated_thus_far = vaccinations.sum()
+            # We can include first dose / second dose here
+            # ...
+            # We can include the affect of vaccination decreasing after 8 months here
+            # ...
+            perc_population_vaccinated_thus_far = \
+                min(1., vaccinated_thus_far / region_model.population)
+            assert 0 <= perc_population_vaccinated_thus_far <= 1, perc_population_vaccinated_thus_far
+    
+            r_immunity_perc = (1. - perc_population_infected_thus_far - perc_population_vaccinated_thus_far)**region_model.immunity_mult
+        else:
+            r_immunity_perc = (1. - perc_population_infected_thus_far)**region_model.immunity_mult
         effective_r = region_model.R_0_ARR[i] * r_immunity_perc
+        
         # we apply a convolution on the infections norm array
         s = (infections[i-INCUBATION_DAYS-len(infections_norm)+1:i-INCUBATION_DAYS+1] * \
             infections_norm).sum() * effective_r
         infections[i] = s + get_daily_imports(region_model, i)
+        #######################
+        if region_model.include_vaccination:
+            if i > 311: # Vaccinations started 311 days after the simulation start date
+                # We probably want a dynamic vaccination rate, based on the CDC data
+                vaccinations[i] = region_model.population * 0.002
+            else:
+                vaccinations[i] = 0
+    
         effective_r_arr.append(effective_r)
 
     region_model.perc_population_infected_final = perc_population_infected_thus_far
@@ -153,5 +175,5 @@ def run(region_model):
         reported_deaths[i:i+max_idx] += \
             (death_reporting_lag_arr_norm * detected_deaths)[:max_idx]
 
-    return dates, infections, hospitalizations, reported_deaths
+    return dates, infections, hospitalizations, reported_deaths, vaccinations
 

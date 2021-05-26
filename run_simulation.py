@@ -113,6 +113,7 @@ def main(args):
     quarantine_perc = args.quarantine_perc
     quarantine_effectiveness = args.quarantine_effectiveness
     verbose = args.verbose
+    include_vaccination = args.include_vaccination
 
     if country != 'US' and not region:
         region = 'ALL'
@@ -191,7 +192,7 @@ def main(args):
 
     region_model = RegionModel(country, region, subregion,
         simulation_start_date, simulation_create_date, simulation_end_date, region_params,
-        compute_hospitalizations=(not skip_hospitalizations))
+        compute_hospitalizations=(not skip_hospitalizations),include_vaccination=include_vaccination)
 
     if quarantine_perc > 0:
         print(f'Quarantine percentage: {quarantine_perc:.0%}')
@@ -222,7 +223,7 @@ def main(args):
         print('--------------------------')
 
     # Run simulation
-    dates, infections, hospitalizations, deaths = run(region_model)
+    dates, infections, hospitalizations, deaths, vaccinations = run(region_model)
 
     """
     The following are lists with length N, where N is the number of days from
@@ -232,6 +233,7 @@ def main(args):
     infections       : number of new infections on day i
     hospitalizations : occupied hospital beds on day i
     deaths           : number of new deaths on day i
+    vaccinations     : number of vaccinations on day i
     """
     assert len(dates) == len(infections) == len(hospitalizations) == len(deaths)
     assert dates[0] == simulation_start_date
@@ -240,6 +242,7 @@ def main(args):
     if verbose:
         infections_total = infections.cumsum()
         deaths_total = deaths.cumsum()
+        vaccinations_total = vaccinations.cumsum()
         for i in range(len(dates)):
             hospitalization_str = ''
             if not skip_hospitalizations:
@@ -248,6 +251,7 @@ def main(args):
                 f'New / total infections: {infections[i]:,.0f} / {infections_total[i]:,.0f} - '
                 f'{hospitalization_str}'
                 f'New / total deaths: {deaths[i]:,.2f} / {deaths_total[i]:,.1f} - '
+                f'New / total vaccinations: {vaccinations[i]:,.2f} / {vaccinations_total[i]:,.1f} - '
                 f'Mean R: {region_model.effective_r_arr[i]:.3f} - '
                 f'IFR: {region_model.ifr_arr[i]:.2%}')
             print(daily_str) # comment out to spare console buffer
@@ -257,6 +261,8 @@ def main(args):
     if not skip_hospitalizations:
         print(f'Peak hospital beds used : {hospitalizations.max():,.0f}')
     print(f'Total deaths            : {deaths.sum():,.0f}')
+    if include_vaccination:
+        print(f'Total vaccinations      : {vaccinations.sum():,.0f}')
 
     if args.save_csv_fname:
         dates_str = np.array(list(map(str, dates)))
@@ -290,6 +296,8 @@ if __name__ == '__main__':
     parser.add_argument('--simulation_end_date',
         help=('Set the end date of the simulation.'
             'This will override any existing values (Format: YYYY-MM-DD)'))
+    parser.add_argument('--include_vaccination', action='store_true',
+        help=('Set the option of using vaccination affects in the simulator.'))
 
     parser.add_argument('--best_params_dir',
         help='if passed, will load parameters from file based on the country, region, subregions')
