@@ -233,7 +233,8 @@ def main(args):
     infections       : number of new infections on day i
     hospitalizations : occupied hospital beds on day i
     deaths           : number of new deaths on day i
-    vaccinations     : number of vaccinations on day i
+    vaccinations     : number of vaccinations on day i (old)
+    vaccinations     : list of first and second doses on day i
     """
     assert len(dates) == len(infections) == len(hospitalizations) == len(deaths)
     assert dates[0] == simulation_start_date
@@ -242,7 +243,8 @@ def main(args):
     if verbose:
         infections_total = infections.cumsum()
         deaths_total = deaths.cumsum()
-        vaccinations_total = vaccinations.cumsum()
+        vaccinations_1_total = vaccinations[0].cumsum()
+        vaccinations_2_total = vaccinations[1].cumsum()
         for i in range(len(dates)):
             hospitalization_str = ''
             if not skip_hospitalizations:
@@ -251,7 +253,8 @@ def main(args):
                 f'New / total infections: {infections[i]:,.0f} / {infections_total[i]:,.0f} - '
                 f'{hospitalization_str}'
                 f'New / total deaths: {deaths[i]:,.2f} / {deaths_total[i]:,.1f} - '
-                f'New / total vaccinations: {vaccinations[i]:,.2f} / {vaccinations_total[i]:,.1f} - '
+                f'New / total 1st doses: {vaccinations[0][i]:,.2f} / {vaccinations_1_total[i]:,.1f} - '
+                f'New / total 2nd doses: {vaccinations[1][i]:,.2f} / {vaccinations_2_total[i]:,.1f} - '
                 f'Mean R: {region_model.effective_r_arr[i]:.3f} - '
                 f'IFR: {region_model.ifr_arr[i]:.2%}')
             print(daily_str) # comment out to spare console buffer
@@ -262,7 +265,9 @@ def main(args):
         print(f'Peak hospital beds used : {hospitalizations.max():,.0f}')
     print(f'Total deaths            : {deaths.sum():,.0f}')
     if include_vaccination:
-        print(f'Total vaccinations      : {vaccinations.sum():,.0f}')
+        # print(f'Total vaccinations      : {vaccinations.sum():,.0f}')
+        print(f'Total 1st doses      : {vaccinations[0].sum():,.0f}')
+        print(f'Total 2nd doses      : {vaccinations[1].sum():,.0f}')
 
     if args.save_csv_fname:
         dates_str = np.array(list(map(str, dates)))

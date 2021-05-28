@@ -52,7 +52,8 @@ def run(region_model):
     dates = np.array([region_model.first_date + datetime.timedelta(days=i) \
         for i in range(region_model.N)])
     infections = np.array([0.] * region_model.N)
-    vaccinations = np.array([0.] * region_model.N)
+    vaccinations_1 = np.array([0.] * region_model.N)
+    vaccinations_2 = np.array([0.] * region_model.N)
     hospitalizations = np.zeros(region_model.N) * np.nan
     deaths = np.array([0.] * region_model.N)
     reported_deaths = np.array([0.] * region_model.N)
@@ -92,22 +93,28 @@ def run(region_model):
             continue
 
         # assume 50% of population lose immunity after 6 months
+        # TODO: Use vaccine efficacy here?
         infected_thus_far = infections[:max(0, i-180)].sum() * 0.5 + infections[max(0, i-180):i-1].sum()
         perc_population_infected_thus_far = \
             min(1., infected_thus_far / region_model.population)
         assert 0 <= perc_population_infected_thus_far <= 1, perc_population_infected_thus_far
 
         if region_model.include_vaccination:
-            vaccinated_thus_far = vaccinations.sum()
+            # vaccinated_thus_far = vaccinations.sum()
             # We can include first dose / second dose here
-            # ...
+            vaccinated_thus_far = int(vaccinations_2.sum() * 0.9) + \
+                                  int((vaccinations_1.sum() - vaccinations_2.sum()) * 0.8) # 90% and 80% efficacy of doses
             # We can include the affect of vaccination decreasing after 8 months here
             # ...
             perc_population_vaccinated_thus_far = \
                 min(1., vaccinated_thus_far / region_model.population)
+                # min(1. - perc_population_infected_thus_far, vaccinated_thus_far / region_model.population)
             assert 0 <= perc_population_vaccinated_thus_far <= 1, perc_population_vaccinated_thus_far
-    
-            r_immunity_perc = (1. - perc_population_infected_thus_far - perc_population_vaccinated_thus_far)**region_model.immunity_mult
+
+            r_immunity_perc = (1. - perc_population_infected_thus_far - perc_population_vaccinated_thus_far)\
+                              **region_model.immunity_mult # Does the immunity multiplier change?
+            # r_immunity_perc = (1. - perc_population_infected_thus_far - perc_population_vaccinated_thus_far) \
+            #                   ** region_model.immunity_mult  # Does the immunity multiplier change?
         else:
             r_immunity_perc = (1. - perc_population_infected_thus_far)**region_model.immunity_mult
         effective_r = region_model.R_0_ARR[i] * r_immunity_perc
@@ -119,10 +126,14 @@ def run(region_model):
         #######################
         if region_model.include_vaccination:
             if i > 311: # Vaccinations started 311 days after the simulation start date
+                # Could make the rollout start date variable
+                # Should our vaccine efficacy be arrays?
                 # We probably want a dynamic vaccination rate, based on the CDC data
-                vaccinations[i] = region_model.population * 0.002
+                vaccinations_1[i] = region_model.population * 0.002
+                if i < region_model.N - 14: # 2 weeks between the doses
+                    vaccinations_2[i+14] = vaccinations_1[i] * 0.8 # 80% individuals get their second dose
             else:
-                vaccinations[i] = 0
+                vaccinations_1[i] = 0
     
         effective_r_arr.append(effective_r)
 
@@ -175,5 +186,5 @@ def run(region_model):
         reported_deaths[i:i+max_idx] += \
             (death_reporting_lag_arr_norm * detected_deaths)[:max_idx]
 
-    return dates, infections, hospitalizations, reported_deaths, vaccinations
+    return dates, infections, hospitalizations, reported_deaths, [vaccinations_1, vaccinations_2]
 
