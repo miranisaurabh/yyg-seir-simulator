@@ -6,6 +6,7 @@ Learn more at: https://github.com/youyanggu/yyg-seir-simulator. Developed by You
 import datetime
 
 import numpy as np
+import pandas as pd
 
 from fixed_params import *
 
@@ -80,6 +81,8 @@ def run(region_model):
 
     # the greater the immunity mult, the greater the effect of immunity
     assert 0 <= region_model.immunity_mult <= 2, region_model.immunity_mult
+    
+    vaccination_forecasts = pd.read_csv('vaccine_forecasts.csv')
 
     ########################################
     # Compute infections
@@ -100,10 +103,10 @@ def run(region_model):
         assert 0 <= perc_population_infected_thus_far <= 1, perc_population_infected_thus_far
 
         if region_model.include_vaccination:
-            # vaccinated_thus_far = vaccinations.sum()
+            vaccinated_thus_far = vaccinations_1.sum()
             # We can include first dose / second dose here
-            vaccinated_thus_far = int(vaccinations_2.sum() * 0.9) + \
-                                  int((vaccinations_1.sum() - vaccinations_2.sum()) * 0.8) # 90% and 80% efficacy of doses
+            #vaccinated_thus_far = int(vaccinations_2.sum() * 0.9) + \
+            #                      int((vaccinations_1.sum() - vaccinations_2.sum()) * 0.8) # 90% and 80% efficacy of doses
             # We can include the affect of vaccination decreasing after 8 months here
             # ...
             perc_population_vaccinated_thus_far = \
@@ -118,6 +121,8 @@ def run(region_model):
         else:
             r_immunity_perc = (1. - perc_population_infected_thus_far)**region_model.immunity_mult
         effective_r = region_model.R_0_ARR[i] * r_immunity_perc
+        if effective_r <= 0 or np.isnan(effective_r):
+            effective_r = 0.00001
         
         # we apply a convolution on the infections norm array
         s = (infections[i-INCUBATION_DAYS-len(infections_norm)+1:i-INCUBATION_DAYS+1] * \
@@ -125,15 +130,17 @@ def run(region_model):
         infections[i] = s + get_daily_imports(region_model, i)
         #######################
         if region_model.include_vaccination:
-            if i > 311: # Vaccinations started 311 days after the simulation start date
+            if i > 310: # Vaccinations started 311 days after the simulation start date
                 # Could make the rollout start date variable
                 # Should our vaccine efficacy be arrays?
                 # We probably want a dynamic vaccination rate, based on the CDC data
-                vaccinations_1[i] = region_model.population * 0.002
-                if i < region_model.N - 14: # 2 weeks between the doses
-                    vaccinations_2[i+14] = vaccinations_1[i] * 0.8 # 80% individuals get their second dose
+                #vaccinations_1[i] = region_model.population * 0.002
+                #if i < region_model.N - 14: # 2 weeks between the doses
+                #    vaccinations_2[i+14] = vaccinations_1[i] * 0.8 # 80% individuals get their second dose
+                vaccinations_1[i] = vaccination_forecasts['Predictions'][i - 311]
             else:
                 vaccinations_1[i] = 0
+                #vaccinations_1[i] = 0
     
         effective_r_arr.append(effective_r)
 

@@ -217,7 +217,7 @@
         ],
         [
             "RATE_OF_INFLECTION",
-            0.25
+            0.15
         ],
         [
             "LOCKDOWN_FATIGUE",
@@ -241,15 +241,15 @@
         ],
         [
             "REOPEN_R",
-            1.06
+            1.25
         ],
         [
             "REOPEN_INFLECTION",
-            0.3
+            0.2
         ],
         [
             "POST_REOPEN_EQUILIBRIUM_R",
-            1.038
+            0.95
         ],
         [
             "FALL_R_MULTIPLIER",
