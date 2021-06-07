@@ -82,7 +82,7 @@ def run(region_model):
     # the greater the immunity mult, the greater the effect of immunity
     assert 0 <= region_model.immunity_mult <= 2, region_model.immunity_mult
     
-    vaccination_forecasts = pd.read_csv('vaccine_forecasts.csv')
+    vaccination_forecasts = pd.read_csv('vaccine_forecasts_both_dose.csv')
 
     ########################################
     # Compute infections
@@ -103,7 +103,10 @@ def run(region_model):
         assert 0 <= perc_population_infected_thus_far <= 1, perc_population_infected_thus_far
 
         if region_model.include_vaccination:
-            vaccinated_thus_far = vaccinations_1.sum()
+            vaccinated_1st_dose = vaccinations_1.sum()
+            vaccinated_2nd_dose = vaccinations_2.sum()
+            vaccinated_thus_far = int(DOSE1_EFFICACY*vaccinated_1st_dose + DOSE2_EFFICACY*vaccinated_2nd_dose)
+
             # We can include first dose / second dose here
             #vaccinated_thus_far = int(vaccinations_2.sum() * 0.9) + \
             #                      int((vaccinations_1.sum() - vaccinations_2.sum()) * 0.8) # 90% and 80% efficacy of doses
@@ -137,10 +140,11 @@ def run(region_model):
                 #vaccinations_1[i] = region_model.population * 0.002
                 #if i < region_model.N - 14: # 2 weeks between the doses
                 #    vaccinations_2[i+14] = vaccinations_1[i] * 0.8 # 80% individuals get their second dose
-                vaccinations_1[i] = vaccination_forecasts['Predictions'][i - 311]
+                vaccinations_1[i] = vaccination_forecasts['Dose1'][i - 311]
+                vaccinations_2[i] = vaccination_forecasts['Dose2'][i - 311]
             else:
                 vaccinations_1[i] = 0
-                #vaccinations_1[i] = 0
+                vaccinations_2[i] = 0
     
         effective_r_arr.append(effective_r)
 
