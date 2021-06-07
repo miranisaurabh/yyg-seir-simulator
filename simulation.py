@@ -140,7 +140,7 @@ def run(region_model):
                 #vaccinations_1[i] = region_model.population * 0.002
                 #if i < region_model.N - 14: # 2 weeks between the doses
                 #    vaccinations_2[i+14] = vaccinations_1[i] * 0.8 # 80% individuals get their second dose
-                vaccinations_1[i] = vaccination_forecasts['Dose1'][i - 311]
+                vaccinations_1[i] = vaccination_forecasts['Dose1'][i - 311] - vaccination_forecasts['Dose2'][i - 311]
                 vaccinations_2[i] = vaccination_forecasts['Dose2'][i - 311]
             else:
                 vaccinations_1[i] = 0
