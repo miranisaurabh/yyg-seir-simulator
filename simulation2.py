@@ -130,10 +130,10 @@ def run(region_model):
         if region_model.include_vaccination:
             # Calculate number of people who got infected even though they had immunity
             ## Assuming that the people (probabilistically in the inefficacy) who are equally susceptible after receiving vaccine as not receiving vaccine
-            if dates[i] in vaccination_forecasts.index: 
-                infected_after_1st_dose = infections[i]*vaccinated_1st_dose*(1-region_model.dose1_efficacy)/(region_model.population*r_immunity_perc)
+            if str(dates[i]) in vaccination_forecasts.index: 
+                infected_after_1st_dose = infections[i]*vaccinated_1st_dose*(1-DOSE1_EFFICACY)/(region_model.population*r_immunity_perc)
                 infections_1st_dose[i] = infected_after_1st_dose
-                infected_after_2nd_dose = infections[i]*vaccinated_2nd_dose*(1-region_model.dose2_efficacy)/(region_model.population*r_immunity_perc)
+                infected_after_2nd_dose = infections[i]*vaccinated_2nd_dose*(1-DOSE2_EFFICACY)/(region_model.population*r_immunity_perc)
                 infections_2nd_dose[i] = infected_after_2nd_dose
                 # TODO: Can try using reinfections, but this will increase the number of paramters to play
                 reinfections = infections[i]*(perc_population_infected_thus_far**region_model.immunity_mult)/r_immunity_perc
